@@ -50,7 +50,9 @@ translate([0,0,floor1]) cube([teatro_width,2*crossbar,4]);
 translate([0,0,floor2]) cube([teatro_width,2*crossbar,4]);
 translate([0,crossbar,floor3]) cube([teatro_width/2,1*crossbar,4]);
 translate([teatro_width/2,crossbar,floor3]) cube([teatro_width/2,1*crossbar,4]);
-color("red") translate([0,0,floor3]) cube([teatro_width,crossbar,2]);
+
+// tarp at an angle
+color("red") translate([0,0,floor3]) rotate([18,0,0])  cube([teatro_width,crossbar*1.1,2]);
 
 // cross bars all the way across the top
 translate([0,0,floor3]) cube([6,2*crossbar,6]);
