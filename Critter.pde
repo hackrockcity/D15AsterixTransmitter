@@ -1,10 +1,4 @@
 public class Critter {
-  public static final int MATING_DIVISOR = 4;
-  public static final int OFFSPRING_DIVISOR = 2;
-  public static final boolean CAN_JUMP = true;
-  public static final boolean DIE_ON_TRAPPED = true;
-  public static final int TRAPPED_DIVISOR = 6; 
-  
   int number;
   int maxpos;
   int pos;
@@ -32,16 +26,16 @@ public class Critter {
   public boolean actOnTrapped(Critter c, Critter c2, int dir) {
     if (canEat(c,true)) return eat(c);
     else if (canEat(c2,true)) return eat(c2);
-    else if (CAN_JUMP && canMove(dir*2)) return move(dir*2);
-    else if (CAN_JUMP && canMove(dir*-2)) return move(dir*-2);
-    else if (DIE_ON_TRAPPED) return die();
-    else return dlife(-life/TRAPPED_DIVISOR);
+    else if (World.canJump && canMove(dir*2)) return move(dir*2);
+    else if (World.canJump && canMove(dir*-2)) return move(dir*-2);
+    else if (World.dieOnTrapped) return die();
+    else return dlife((int)(-life/World.trappedDivisor));
   }
   
   public boolean moveOn(Critter c, int delta) {
     if ((canEat(c,true) || canMate(c)) && canMove(delta)) return move(delta);
     else if (c.canEat(this,true) && canMove(-delta) && life > 32) return move(-delta);
-    else if (life > 32) return dlife(-1);
+    else if (life < 32) return dlife(-1);
     return false;
   }
   
@@ -83,13 +77,14 @@ public class Critter {
     }
     
     // Otherwise just move
-    if (canMove(dir)) return move(dir);
-    else if (canMove(-dir)) return move(-dir);
-    
-    println("This shouldn't happen");
-    return false;
+    return defaultAct(dir);
   }
 
+  public boolean defaultAct(int dir) {
+    if (canMove(dir)) return move(dir);
+    else return move(-dir);
+  }
+  
   public boolean canEat(Critter victim, boolean trapped) {
     if (this == victim) {
       println(this.number + " is trying to eat itself");
@@ -116,6 +111,8 @@ public class Critter {
       return false;
     }
     
+    if (mate instanceof Zombie) return false;
+    if (this instanceof Zombie) return false;
     // Figure out which direction would need to move
     int delta = this.pos-mate.pos/abs(this.pos-mate.pos);
     
@@ -142,7 +139,7 @@ public class Critter {
   }
   
   public boolean eat(Critter victim) {
-    this.dlife(victim.life);
+    if (!(victim instanceof Zombie)) this.dlife(victim.life);
     World.kill(victim);
     return true;    
   }
@@ -155,11 +152,11 @@ public class Critter {
     move(delta);
     
     // Add baby in moms old position
-    Critter baby = new Critter(babypos,(dad.life+this.life)/OFFSPRING_DIVISOR,this,dad);
+    Critter baby = new Critter(babypos,(int)((dad.life+this.life)/World.offspringDivisor),this,dad);
     
     // Making babies takes work
-    this.dlife(-this.life/MATING_DIVISOR);
-    dad.dlife(-dad.life/MATING_DIVISOR);
+    this.dlife((int)(-this.life/World.matingDivisor));
+    dad.dlife((int)(-dad.life/World.matingDivisor));
     
     // Add the baby into the world
     World.add(baby);
