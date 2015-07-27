@@ -32,6 +32,22 @@ module ladder(len,width)
 	}
 }
 
+module crossbar(x,y,z)
+{
+	color("purple") translate([x,y+3,z-3]) cube([6,crossbar-6,6]);
+}
+
+module crossbar_pair(x,y,z)
+{
+	crossbar(x,y,z);
+	crossbar(x+upright_dim,y,z);
+}
+
+module floor(x,y,z,w)
+{
+	color("pink") translate([x,y,z+3]) cube([w,crossbar,2]);
+}
+
 module teatro()
 {
 // back uprights are only partial
@@ -45,27 +61,46 @@ translate([teatro_width,1*crossbar,0]) rotate([0,0,180]) upright(21*12,21*12);
 translate([0,2*crossbar,0]) upright(21*12,21*12);
 translate([teatro_width,2*crossbar,0]) rotate([0,0,180]) upright(21*12,21*12);
 
-// two solid floors, one half floor
-translate([0,0,floor1]) cube([teatro_width,2*crossbar,4]);
-translate([0,0,floor2]) cube([teatro_width,2*crossbar,4]);
-translate([0,crossbar,floor3]) cube([teatro_width/2,1*crossbar,4]);
-translate([teatro_width/2,crossbar,floor3]) cube([teatro_width/2,1*crossbar,4]);
+// first floor
+for (box=[0,1])
+{
+	floor(0,box*crossbar,floor1, teatro_width);
+	crossbar_pair(0,box*crossbar,floor1);
+	crossbar_pair(1*teatro_width-upright_dim,box*crossbar,floor1);
+}
+
+// second floor with rail up the backside of the top box
+for (box=[0,1])
+{
+	floor(0,box*crossbar,floor2, teatro_width);
+	crossbar_pair(0,box*crossbar,floor2);
+	crossbar_pair(1*teatro_width-upright_dim,box*crossbar,floor2);
+	crossbar(teatro_width,box*crossbar,floor2+30);
+	//crossbar(teatro_width,box*crossbar,floor2+48);
+	crossbar(teatro_width,box*crossbar,floor2+60);
+}
+
+
+// the third floor only has the front half
+for (box=[1])
+{
+	floor(0,box*crossbar,floor3, teatro_width);
+	crossbar_pair(0,box*crossbar,floor3);
+	crossbar_pair(1*teatro_width-upright_dim,box*crossbar,floor3);
+
+	// railings to keep us from falling off
+	crossbar(0,box*crossbar,21*12);
+	crossbar(teatro_width,box*crossbar,21*12);
+}
+
+
+// cross bars on the other half are just for support
+// and are not danceable
+crossbar(0,0,floor3);
+crossbar(teatro_width,0,floor3);
 
 // tarp at an angle
 color("red") translate([0,0,floor3]) rotate([18,0,0])  cube([teatro_width,crossbar*1.1,2]);
-
-// cross bars all the way across the top
-translate([0,0,floor3]) cube([6,2*crossbar,6]);
-translate([teatro_width,0,floor3]) cube([6,2*crossbar,6]);
-
-// rails on the front half
-translate([0,crossbar,21*12]) cube([6,1*crossbar,6]);
-translate([teatro_width,crossbar,21*12]) cube([6,1*crossbar,6]);
-
-// rail up the backside of the top box
-translate([teatro_width,0,floor2+24]) cube([6,2*crossbar,6]);
-translate([teatro_width,0,floor2+48]) cube([6,2*crossbar,6]);
-translate([teatro_width,0,floor2+72]) cube([6,2*crossbar,6]);
 
 // ladder to the first level
 translate([-teatro_width+40,0*crossbar,0])
@@ -100,22 +135,37 @@ translate([teatro_width,2*crossbar,0]) rotate([0,0,180]) upright(17*12,14*12);
 translate([teatro_width,3*crossbar,0]) rotate([0,0,180]) upright(17*12,14*12);
 
 // solid floor across the mid level
-translate([0,0,floor2]) cube([teatro_width,3*crossbar,6]);
+for (box=[0,1,2])
+{
+	floor(0,box*crossbar,floor2, teatro_width);
+	crossbar_pair(0,box*crossbar,floor2);
+	crossbar_pair(1*teatro_width-upright_dim,box*crossbar,floor2);
 
-// half tarp, half floor
-color("red") translate([teatro_width/2,0,floor3]) cube([teatro_width/2,3*crossbar,6]);
-translate([0,0,floor3]) cube([teatro_width/2,3*crossbar,6]);
+	// safety rails
+	crossbar(0,box*crossbar,floor2+48);
+	crossbar(teatro_width,box*crossbar,floor2+48);
 
-// and the sign top mount
-translate([0,0,21*12]) cube([6,3*crossbar,6]);
+	// sign and tarp support
+	crossbar(0,box*crossbar,floor3);
+	crossbar(teatro_width,box*crossbar,floor3);
+
+	// sign work platform is only half deep
+	floor(0,box*crossbar, floor3, upright_dim);
+
+	// the sign top mount
+	crossbar(0,box*crossbar,21*12);
+
+}
+
+// sign itself
 color("green") translate([0,0,21*12-40]) cube([5,3*crossbar,40]);
 
+// half tarp, half floor
+color("red")
+translate([upright_dim+6,0,floor3])
+cube([teatro_width-upright_dim-6,3*crossbar,6]);
 
-// railings front and back
-translate([teatro_width,0,floor3]) cube([6,3*crossbar,6]);
-translate([0,0,(floor2+floor3)/2]) cube([6,3*crossbar,6]);
-translate([teatro_width,0,(floor2+floor3)/2]) cube([6,3*crossbar,6]);
-translate([teatro_width,0,floor2]) cube([6,3*crossbar,6]);
+
 }
 
 
