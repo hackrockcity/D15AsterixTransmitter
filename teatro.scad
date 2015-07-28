@@ -7,18 +7,21 @@ floor3=17*12;
 
 module helios()
 {
-	color("red") rotate([0,0,0]) cylinder(r=6,h=15*12);
-	color("green") rotate([0,12,0]) cylinder(r=6,h=15*12);
-	color("blue") rotate([0,24,0]) cylinder(r=6,h=15*12);
+	color("red") rotate([0,0,0]) cylinder(r=3,h=15*12);
+	color("green") rotate([0,12,0]) cylinder(r=3,h=15*12);
+	color("blue") rotate([0,24,0]) cylinder(r=3,h=15*12);
 }
 
 module upright(len1,len2)
 {
+	color("purple")
+	{
 	translate([-3,-3,0]) cube([6,6,len1]);
 	translate([upright_dim-3,-3,0]) cube([6,6,len2]);
 	for(i=[1:(len2/36)])
 	{
 		translate([0,-3,35*i-6]) cube([upright_dim,6,6]);
+	}
 	}
 }
 
@@ -34,7 +37,8 @@ module ladder(len,width)
 
 module crossbar(x,y,z)
 {
-	color("purple") translate([x,y+3,z-3]) cube([6,crossbar-6,6]);
+	//color("purple")
+	translate([x,y+3,z-3]) cube([6,crossbar-6,6]);
 }
 
 module crossbar_pair(x,y,z)
@@ -45,7 +49,8 @@ module crossbar_pair(x,y,z)
 
 module floor(x,y,z,w)
 {
-	color("pink") translate([x,y,z+3]) cube([w,crossbar,2]);
+	color("green", 0.5)
+	translate([x,y,z+6]) cube([w,crossbar,2]);
 }
 
 module teatro()
@@ -64,33 +69,34 @@ translate([teatro_width,2*crossbar,0]) rotate([0,0,180]) upright(21*12,21*12);
 // first floor
 for (box=[0,1])
 {
-	floor(0,box*crossbar,floor1, teatro_width);
 	crossbar_pair(0,box*crossbar,floor1);
 	crossbar_pair(1*teatro_width-upright_dim,box*crossbar,floor1);
+	floor(0,box*crossbar,floor1, teatro_width);
 }
 
 // second floor with rail up the backside of the top box
 for (box=[0,1])
 {
-	floor(0,box*crossbar,floor2, teatro_width);
 	crossbar_pair(0,box*crossbar,floor2);
 	crossbar_pair(1*teatro_width-upright_dim,box*crossbar,floor2);
 	crossbar(teatro_width,box*crossbar,floor2+30);
 	//crossbar(teatro_width,box*crossbar,floor2+48);
 	crossbar(teatro_width,box*crossbar,floor2+60);
+	floor(0,box*crossbar,floor2, teatro_width);
 }
 
 
 // the third floor only has the front half
 for (box=[1])
 {
-	floor(0,box*crossbar,floor3, teatro_width);
 	crossbar_pair(0,box*crossbar,floor3);
 	crossbar_pair(1*teatro_width-upright_dim,box*crossbar,floor3);
 
 	// railings to keep us from falling off
 	crossbar(0,box*crossbar,21*12);
 	crossbar(teatro_width,box*crossbar,21*12);
+
+	floor(0,box*crossbar,floor3, teatro_width);
 }
 
 
@@ -137,13 +143,12 @@ translate([teatro_width,3*crossbar,0]) rotate([0,0,180]) upright(17*12,14*12);
 // solid floor across the mid level
 for (box=[0,1,2])
 {
-	floor(0,box*crossbar,floor2, teatro_width);
 	crossbar_pair(0,box*crossbar,floor2);
 	crossbar_pair(1*teatro_width-upright_dim,box*crossbar,floor2);
 
 	// safety rails
-	crossbar(0,box*crossbar,floor2+48);
-	crossbar(teatro_width,box*crossbar,floor2+48);
+	crossbar(0,box*crossbar,floor2+36);
+	crossbar(teatro_width,box*crossbar,floor2+36);
 
 	// sign and tarp support
 	crossbar(0,box*crossbar,floor3);
@@ -155,10 +160,16 @@ for (box=[0,1,2])
 	// the sign top mount
 	crossbar(0,box*crossbar,21*12);
 
+	floor(0,box*crossbar,floor2, teatro_width);
 }
 
 // sign itself
-color("green") translate([0,0,21*12-40]) cube([5,3*crossbar,40]);
+color("DeepPink", 0.9)
+translate([0,39*12,floor3-20])
+scale(0.6)
+rotate([90,0,-90])
+linear_extrude(height=5)
+import("disorient.dxf");
 
 // half tarp, half floor
 color("red")
@@ -185,10 +196,14 @@ teatro();
 rotate([0,0,-90]) translate([0,-3*crossbar/2,0]) sign();
 %translate([0,0*12,0]) cube([100*12,100*12,1], center=true);
 
-color("green") translate([0,-30*12,0]) render() intersection() {
+// put the dome in the background, cut in half by the ground
+color("green") translate([0,-30*12,0]) render() difference() {
 	sphere(r=12*18);
-	translate([0,0,12*50/2]) cube([12*50,12*50,12*50], center=true);
+	sphere(r=11.5*18);
+	translate([0,0,-12*50/2]) cube([12*50,12*50,12*50], center=true);
+	translate([0,18*12,0]) sphere(r=12*18);
 
 }
 
 }
+
