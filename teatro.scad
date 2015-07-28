@@ -106,7 +106,18 @@ crossbar(0,0,floor3);
 crossbar(teatro_width,0,floor3);
 
 // tarp at an angle
-color("red") translate([0,0,floor3]) rotate([18,0,0])  cube([teatro_width,crossbar*1.1,2]);
+color("red") polyhedron(
+	points=[
+		[0,0,21*12],
+		[0,crossbar,21*12],
+		[teatro_width,crossbar,21*12],
+		[teatro_width,0,floor3],
+		],
+	faces=[
+		[0,1,2],
+		[2,0,3],
+	]
+);
 
 // ladder to the first level
 translate([-teatro_width+40,0*crossbar,0])
