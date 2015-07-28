@@ -1,13 +1,13 @@
-public class Critter {
+public class Spark {
   int number;
   int maxpos;
   int pos;
-  int life;
+  float life;
   boolean isDead;
-  Critter mom;
-  Critter dad;
+  Spark mom;
+  Spark dad;
   
-  public Critter(int pos, int life, Critter mom, Critter dad) {
+  public Spark(int pos, int life, Spark mom, Spark dad) {
     this.number = World.makeNumber();
     this.pos = pos;
     this.life = life;
@@ -17,13 +17,13 @@ public class Critter {
     this.isDead = false;
   }
   
-  public boolean actOn(Critter c) {
+  public boolean actOn(Spark c) {
     if (canMate(c)) return mate(c);
     else if (canEat(c,false)) return eat(c);
     return false;
   }
   
-  public boolean actOnTrapped(Critter c, Critter c2, int dir) {
+  public boolean actOnTrapped(Spark c, Spark c2, int dir) {
     if (canEat(c,true)) return eat(c);
     else if (canEat(c2,true)) return eat(c2);
     else if (World.canJump && canMove(dir*2)) return move(dir*2);
@@ -32,7 +32,7 @@ public class Critter {
     else return dlife((int)(-life/World.trappedDivisor));
   }
   
-  public boolean moveOn(Critter c, int delta) {
+  public boolean moveOn(Spark c, int delta) {
     if ((canEat(c,true) || canMate(c)) && canMove(delta)) return move(delta);
     else if (c.canEat(this,true) && canMove(-delta) && life > 32) return move(-delta);
     else if (life < 32) return dlife(-1);
@@ -46,8 +46,8 @@ public class Critter {
     }
     
     int dir = number % 2 == 0 ? 1 : -1;
-    Critter c; 
-    Critter c2;
+    Spark c; 
+    Spark c2;
     
     // Try to act on first adjacent
     c = look(dir);
@@ -85,11 +85,13 @@ public class Critter {
     else return move(-dir);
   }
   
-  public boolean canEat(Critter victim, boolean trapped) {
+  public boolean canEat(Spark victim, boolean trapped) {
     if (this == victim) {
       println(this.number + " is trying to eat itself");
       return false;
     }
+    
+    if (victim instanceof Dragon) return false;
     
     // Can eat if stronger, not family, or trapped/dying and not child.
     return  
@@ -99,7 +101,7 @@ public class Critter {
       );
   }
   
-  public boolean canMate(Critter mate) {
+  public boolean canMate(Spark mate) {
     
     // Some safety checks, can remove
     if (this == mate) {
@@ -113,6 +115,9 @@ public class Critter {
     
     if (mate instanceof Zombie) return false;
     if (this instanceof Zombie) return false;
+    if (mate instanceof Dragon) return false;
+    if (this instanceof Dragon) return false;
+
     // Figure out which direction would need to move
     int delta = this.pos-mate.pos/abs(this.pos-mate.pos);
     
@@ -121,15 +126,15 @@ public class Critter {
       canMove(delta);
   }
   
-  public boolean isChild(Critter c) {
+  public boolean isChild(Spark c) {
     return c.dad == this || c.mom == this;
   }
   
-  public boolean isParent(Critter c) {
+  public boolean isParent(Spark c) {
     return dad == c || mom == c;
   }
   
-  public boolean isFamily(Critter c) {
+  public boolean isFamily(Spark c) {
     return this.isParent(c) || this.isChild(c);
   }
   
@@ -138,13 +143,13 @@ public class Critter {
     return true;
   }
   
-  public boolean eat(Critter victim) {
+  public boolean eat(Spark victim) {
     if (!(victim instanceof Zombie)) this.dlife(victim.life);
     World.kill(victim);
     return true;    
   }
   
-  public boolean mate(Critter dad) {
+  public boolean mate(Spark dad) {
     int delta = this.pos-dad.pos/abs(this.pos-dad.pos);
     int babypos = this.pos;
     
@@ -152,7 +157,7 @@ public class Critter {
     move(delta);
     
     // Add baby in moms old position
-    Critter baby = new Critter(babypos,(int)((dad.life+this.life)/World.offspringDivisor),this,dad);
+    Spark baby = new Spark(babypos,(int)((dad.life+this.life)/World.offspringDivisor),this,dad);
     
     // Making babies takes work
     this.dlife((int)(-this.life/World.matingDivisor));
@@ -164,9 +169,9 @@ public class Critter {
     return true;
   }
   
-  public Critter look(int delta) {
+  public Spark look(int delta) {
     int sign = delta/abs(delta);
-    Critter c;
+    Spark c;
     
     for (int i=1; i<=abs(delta); i++) {
       c = World.get(pos+i*sign);
@@ -176,9 +181,9 @@ public class Critter {
     return null;
   }
   
-  public boolean dlife(int delta) {
+  public boolean dlife(float delta) {
     life += delta;
-    if (life<=0)
+    if (life<1)
       this.die();
     else if (life>255)
       life=255;

@@ -1,5 +1,6 @@
-public class Zombie extends Critter {
+public class Zombie extends Spark {
   int brains;
+  Zombie lastswap;
   
   public Zombie(int pos, int life, Zombie zombifier) {
     super(pos,life,zombifier,null);
@@ -17,11 +18,11 @@ public class Zombie extends Critter {
     return false;
   }
   
-  public boolean canEat(Critter victim, boolean trapped) {
-    return life >= victim.life && !(victim instanceof Zombie);
+  public boolean canEat(Spark victim, boolean trapped) {
+    return life >= victim.life && !(victim instanceof Zombie) && !(victim instanceof Dragon);
   }
     
-  public boolean eat(Critter victim) {
+  public boolean eat(Spark victim) {
     int oldpos = victim.pos;
     
     dlife((int)(victim.life/World.zombifyDivisor));
@@ -36,13 +37,13 @@ public class Zombie extends Critter {
   }
   
   public boolean canMove(int delta) {
-    Critter c = World.get(pos+delta);
+    Spark c = World.get(pos+delta);
     
-    return (c == null || c instanceof Zombie);
+    return (c == null || (c instanceof Zombie && c != lastswap));
   }
   
   public boolean move(int delta) {
-    Critter c = World.get(pos+delta);
+    Spark c = World.get(pos+delta);
     
     if (c == null) {
       int newpos = World.move(this,delta);
@@ -55,6 +56,7 @@ public class Zombie extends Critter {
       return false;
     }
     else {
+      lastswap = c;
       World.swap(this.pos, c.pos);
       int tmp = this.pos;
       this.pos = c.pos;
@@ -66,8 +68,7 @@ public class Zombie extends Critter {
   public void draw() {
     int x = pos / Config.HEIGHT;
     int y = pos % Config.HEIGHT;
-    
-    draw.stroke(life,life/2,life/2);
+    draw.stroke(life,(int)(life/255.0*178),(int)(life/255.0*63));
     draw.point(x,y);    
   }
 }

@@ -1,37 +1,63 @@
 import java.util.*;
 
 public static class World {
-  public static float matingDivisor = 4;
-  public static float offspringDivisor = 2;
-  public static boolean canJump = false;
-  public static boolean dieOnTrapped = true;
-  public static float trappedDivisor = 6; 
-  public static float zombifyDivisor = 1.2;
-  public static float zombifiedDivisor = 1.2;
-  public static float zombieBrains = 100;
-  public static float spawnChance = 0.2;
-  public static float zombieChance = 0.8;
+  public static float matingDivisor;
+  public static float offspringDivisor;
+  public static boolean canJump;
+  public static boolean dieOnTrapped;
+  public static float trappedDivisor; 
+  public static float zombifyDivisor;
+  public static float zombifiedDivisor;
+  public static float zombieBrains;
+  public static float spawnChance;
+  public static float zombieChance;
+  public static float dragonChance;
+  public static float fireDivisor;
+  public static float healDivisor;
   
   public static int turn = 0;
   public static int total = 0;
   public static int alive = 0;
   public static int zombies = 0;
-  public static Critter[] population;
-  public static ArrayList<Critter> living;
+  public static int dragons = 0;
+  
+  public static Spark[] population;
+  public static ArrayList<Spark> living;
 
+  public static void reset() {
+    matingDivisor = 4;
+    offspringDivisor = 2;
+    canJump = false;
+    dieOnTrapped = true;
+    trappedDivisor = 6; 
+    zombifyDivisor = 1.2;
+    zombifiedDivisor = 1.2;
+    zombieBrains = 200;
+    spawnChance = 0.2;
+    zombieChance = 0.5;
+    dragonChance = 0.05;
+    fireDivisor = 15;
+    healDivisor = 20;
+    
+    print("RESET! ");
+    printWorldSettings();
+  }
+  
   public static void setup() {
-    population = new Critter[Config.WIDTH*Config.HEIGHT];
+    reset();
+    population = new Spark[Config.WIDTH*Config.HEIGHT];
     for (int i=0; i<population.length; i++) {
       population[i] = null;
     }
-    living = new ArrayList<Critter>();
+    living = new ArrayList<Spark>();
   }
   
-  public static boolean add(Critter c) {
+  public static boolean add(Spark c) {
     if (population[c.pos] == null) {
       population[c.pos] = c;
       alive++;
       if (c instanceof Zombie) zombies++;
+      if (c instanceof Dragon) dragons++;
       living.add(c);
       return true;
     }
@@ -39,7 +65,7 @@ public static class World {
     throw new RuntimeException("Couldn't add " + c.number + " because " + population[c.pos].number + " occupies that spot.");
   }
   
-  public static boolean kill(Critter c) {
+  public static boolean kill(Spark c) {
     if (c == null) {
       println("Cannot kill null");
       return false;
@@ -68,7 +94,7 @@ public static class World {
     population[c.pos] = null;
     living.remove(c);
     
-    for (Critter child : population) {
+    for (Spark child : population) {
       if (child != null) {
         if (child.dad == c) child.dad = null;
         if (child.mom == c) child.mom = null;
@@ -78,11 +104,12 @@ public static class World {
     c.isDead = true;
     alive--;
     if (c instanceof Zombie) zombies--;
+    if (c instanceof Dragon) dragons--;
     //println("Killed " + c.number + " now " + alive + " alive");
     return true;
   }
 
-  public static int find(Critter target) {
+  public static int find(Spark target) {
     for (int i=0; i<population.length; i++) {
       if (population[i] == target) return i;
     }
@@ -95,11 +122,11 @@ public static class World {
     return i;
   }  
   
-  public static Critter get(int i) {
+  public static Spark get(int i) {
     return population[World.bound(i)];
   }
   
-  public static int move(Critter c, int delta) {
+  public static int move(Spark c, int delta) {
     int newpos = bound(c.pos+delta);
     if (get(newpos) == null) {
       population[c.pos] = null;
@@ -111,7 +138,7 @@ public static class World {
   }
   
   public static void swap(int l, int r) {
-    Critter tmp = population[l];
+    Spark tmp = population[l];
     population[l] = population[r];
     population[r] = tmp;
   }
@@ -120,7 +147,7 @@ public static class World {
     Collections.shuffle(living,new Random(System.nanoTime()));
 
     for (int i=0; i<living.size(); i++) {
-      Critter c = living.get(i);
+      Spark c = living.get(i);
       
       if (!c.isDead) c.act();
     }    
@@ -128,12 +155,12 @@ public static class World {
     turn++;
     
     if (turn % 100 == 0) 
-      println("Turn #"+turn + " " + total+" born " + alive+" alive");
+      println("Turn #"+turn + " " + total+" born " + alive+" alive " + zombies + " zombies " + dragons + " dragons");
 
   }
   
   public static void draw() {
-    for (Critter c : population) 
+    for (Spark c : population) 
       if (c != null && !c.isDead) 
         c.draw();
         
@@ -144,7 +171,7 @@ public static class World {
   }  
   
   public static void despawn() {
-    Critter c = living.get(0);
+    Spark c = living.get(0);
     living.remove(0);
     World.kill(c);
   }
@@ -163,8 +190,17 @@ public static class World {
     World.zombifiedDivisor = World.zombifiedDivisor * (0.9 + random(0.2));
     World.zombieChance = World.zombieChance * (0.9 + random(0.2));
     World.zombieBrains = World.zombieBrains * (0.9 + random(0.2));
+    World.dragonChance = World.dragonChance * (0.9 + random(0.2));
+    World.fireDivisor = World.fireDivisor * (0.9 + random(0.2));
+    World.healDivisor = World.healDivisor * (0.9 + random(0.2));
+    World.fireDivisor = World.fireDivisor * (0.9 + random(0.2));
+    
+    print("Entropy! ");
+    printWorldSettings();  
+  }
   
-    println("Entropy!  matingDivisor=" + World.matingDivisor + 
+  public static void printWorldSettings() {
+        println("matingDivisor=" + World.matingDivisor + 
       " offSpringDivisor=" + World.offspringDivisor + 
       " canJump=" + World.canJump + 
       " dieOnTrapped=" + World.dieOnTrapped + 
@@ -172,7 +208,10 @@ public static class World {
       " zombifyDivisor=" + World.zombifyDivisor + 
       " zombifiedDivisor=" + World.zombifiedDivisor +
       " zombieChance=" + World.zombieChance +
-      " zombieBrains=" + World.zombieBrains
+      " zombieBrains=" + World.zombieBrains +
+      " dragonChance=" + World.dragonChance +
+      " fireDivisor=" + World.fireDivisor + 
+      " healDivisor=" + World.healDivisor
     ); 
   }
 }
