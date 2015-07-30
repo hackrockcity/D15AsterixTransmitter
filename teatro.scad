@@ -1,6 +1,7 @@
 upright_dim=36;
 crossbar=13*12;
 teatro_width=8*12;
+teatro_angle=30;
 floor1=1*12;
 floor2=9*12;
 floor3=17*12;
@@ -35,6 +36,20 @@ module ladder(len,width)
 	}
 }
 
+module stairs(len,width,sides)
+{
+	for(i=[1:(len/12)])
+	{
+		translate([0,i*8-1,12*i]) cube([width,12,2]);
+	}
+
+	if (sides)
+	{
+		rotate([-30,0,0]) translate([width,0,0]) cube([2,8,1.5*len]);
+		rotate([-30,0,0]) translate([0,0,0]) cube([2,8,1.5*len]);
+	}
+}
+
 module crossbar(x,y,z)
 {
 	//color("purple")
@@ -50,7 +65,7 @@ module crossbar_pair(x,y,z)
 module floor(x,y,z,w)
 {
 	color("green", 0.5)
-	translate([x,y,z+6]) cube([w,crossbar,2]);
+	translate([x,y,z+1.1]) cube([w,crossbar,2]);
 }
 
 module teatro()
@@ -119,16 +134,32 @@ color("red") polyhedron(
 	]
 );
 
-// ladder to the first level
-translate([-teatro_width+40,0*crossbar,0])
-rotate([0,0,90])
-rotate([30,0,0])
-ladder(10*12,24);
+// stairs to the first level
+translate([teatro_width/2-36/2,-24,floor2-48])
+stairs(2*12,36,1);
+
+rotate([0,0,teatro_angle*2])
+translate([-22,-120,0])
+{
+	// stairs from the ground
+	stairs(floor2-60,36,1);
+
+	// mezanine for the stairs
+	color("green")
+	translate([-teatro_width/3,teatro_width/2-12,floor2-60+12])
+	render() difference()
+	{
+		cube([teatro_width,teatro_width,2]);
+		rotate(-teatro_angle) translate([-teatro_width,0,-10]) cube([100,200,20]);
+		rotate(+teatro_angle) translate([teatro_width,-100,-10]) cube([100,200,20]);
+	}
+}
+
 
 // ladder to the second level
-translate([teatro_width-24-8,90,floor2])
-rotate([30,0,180])
-ladder(10*12,24);
+translate([teatro_width-12,135,floor2])
+rotate([8,0,180])
+ladder(12*12,24);
 
 translate([0,2*crossbar+12,(21-15)*12])
 helios();
@@ -163,6 +194,7 @@ for (box=[0,1,2])
 
 	// sign and tarp support
 	crossbar(0,box*crossbar,floor3);
+	crossbar(upright_dim,box*crossbar,floor3);
 	crossbar(teatro_width,box*crossbar,floor3);
 
 	// sign work platform is only half deep
@@ -172,6 +204,14 @@ for (box=[0,1,2])
 	crossbar(0,box*crossbar,21*12);
 
 	floor(0,box*crossbar,floor2, teatro_width);
+
+	// stairs on either side
+	translate([teatro_width/2-36/2,-36,floor2-48])
+	stairs(2*12,36,1);
+
+	translate([teatro_width/2-36/2,3*crossbar+24,floor2-48])
+	scale([1,-1,1])
+	stairs(2*12,36,1);
 }
 
 // sign itself
@@ -196,11 +236,11 @@ cube([teatro_width-upright_dim-6,3*crossbar,6]);
 rotate([0,0,180]) scale(.1)
 {
 translate([+3*crossbar/2+6,0,0])
-rotate([0,0,-30])
+rotate([0,0,-teatro_angle])
 teatro();
 
 translate([-3*crossbar/2+6,0,0])
-rotate([0,0,+30])
+rotate([0,0,+teatro_angle])
 scale([-1,1,1])
 teatro();
 
@@ -208,7 +248,7 @@ rotate([0,0,-90]) translate([0,-3*crossbar/2,0]) sign();
 %translate([0,0*12,0]) cube([100*12,100*12,1], center=true);
 
 // put the dome in the background, cut in half by the ground
-color("green") translate([0,-30*12,0]) render() difference() {
+color("green") translate([0,-20*12,0]) render() difference() {
 	sphere(r=12*18);
 	sphere(r=11.5*18);
 	translate([0,0,-12*50/2]) cube([12*50,12*50,12*50], center=true);
