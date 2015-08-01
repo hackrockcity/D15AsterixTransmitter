@@ -5,6 +5,7 @@ teatro_angle=30;
 floor1=1*12;
 floor2=9*12;
 floor3=17*12;
+include_tarp = 0; // rebecca doesn't like the tarps
 
 module helios()
 {
@@ -36,17 +37,27 @@ module ladder(len,width)
 	}
 }
 
+
+// home depot stringers are 10' run and 6' rise.
+// in steep mode they would be 6' run and 10' rise
+rise=10;
+run=6;
 module stairs(len,width,sides)
 {
-	for(i=[1:(len/12)])
+	for(i=[1:(len/rise)])
 	{
-		translate([0,i*8-1,12*i]) cube([width,12,2]);
+		translate([0,i*run-1,rise*i]) cube([width,run,2]);
 	}
 
 	if (sides)
 	{
-		rotate([-30,0,0]) translate([width,0,0]) cube([2,8,1.5*len]);
-		rotate([-30,0,0]) translate([0,0,0]) cube([2,8,1.5*len]);
+		rotate([-atan2(run,rise),0,0])
+		translate([width,0,run])
+		cube([2,8, len*(atan2(rise,run)*3.14/180)]);
+
+		rotate([-atan2(run,rise),0,0])
+		translate([0,0,run])
+		cube([2,8, len*(atan2(rise,run)*3.14/180)]);
 	}
 }
 
@@ -89,14 +100,14 @@ for (box=[0,1])
 	floor(0,box*crossbar,floor1, teatro_width);
 }
 
-// second floor with rail up the backside of the top box
+// second floor had rail up the backside of the top box
+// but now just a safety rail front and back
 for (box=[0,1])
 {
 	crossbar_pair(0,box*crossbar,floor2);
 	crossbar_pair(1*teatro_width-upright_dim,box*crossbar,floor2);
-	crossbar(teatro_width,box*crossbar,floor2+30);
-	//crossbar(teatro_width,box*crossbar,floor2+48);
-	crossbar(teatro_width,box*crossbar,floor2+60);
+	crossbar(0,box*crossbar,floor2+40);
+	crossbar(teatro_width,box*crossbar,floor2+40);
 	floor(0,box*crossbar,floor2, teatro_width);
 }
 
@@ -121,32 +132,33 @@ crossbar(0,0,floor3);
 crossbar(teatro_width,0,floor3);
 
 // tarp at an angle
-color("red") polyhedron(
-	points=[
-		[0,0,21*12],
-		[0,crossbar,21*12],
-		[teatro_width,crossbar,21*12],
-		[teatro_width,0,floor3],
-		],
-	faces=[
-		[0,1,2],
-		[2,0,3],
-	]
-);
+if (include_tarp)
+{
+	color("red") polyhedron(
+		points=[
+			[0,0,21*12],
+			[0,crossbar,21*12],
+			[teatro_width,crossbar,21*12],
+			[teatro_width,0,floor3],
+			],
+		faces=[
+			[0,1,2],
+			[2,0,3],
+		]
+	);
+}
 
 // stairs to the first level
-translate([teatro_width/2-36/2,-24,floor2-48])
-stairs(2*12,36,1);
 
 rotate([0,0,teatro_angle*2])
 translate([-22,-120,0])
 {
-	// stairs from the ground
-	stairs(floor2-60,36,1);
+	// 8' stairs from the ground
+	translate([0,-20,0]) stairs(86,36,1);
 
 	// mezanine for the stairs
 	color("green")
-	translate([-teatro_width/3,teatro_width/2-12,floor2-60+12])
+	translate([-teatro_width/3,teatro_width/2-12,86-6])
 	render() difference()
 	{
 		cube([teatro_width,teatro_width,2]);
@@ -204,14 +216,6 @@ for (box=[0,1,2])
 	crossbar(0,box*crossbar,21*12);
 
 	floor(0,box*crossbar,floor2, teatro_width);
-
-	// stairs on either side
-	translate([teatro_width/2-36/2,-36,floor2-48])
-	stairs(2*12,36,1);
-
-	translate([teatro_width/2-36/2,3*crossbar+24,floor2-48])
-	scale([1,-1,1])
-	stairs(2*12,36,1);
 }
 
 // sign itself
@@ -223,9 +227,12 @@ linear_extrude(height=5)
 import("disorient.dxf");
 
 // half tarp, half floor
-color("red")
-translate([upright_dim+6,0,floor3])
-cube([teatro_width-upright_dim-6,3*crossbar,6]);
+if(include_tarp)
+{
+	color("red")
+	translate([upright_dim+6,0,floor3])
+	cube([teatro_width-upright_dim-6,3*crossbar,6]);
+}
 
 
 }
