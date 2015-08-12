@@ -9,9 +9,10 @@ include_tarp = 0; // rebecca doesn't like the tarps
 
 module helios()
 {
-	color("red") rotate([0,0,0]) cylinder(r=3,h=15*12);
-	color("green") rotate([0,12,0]) cylinder(r=3,h=15*12);
-	color("blue") rotate([0,24,0]) cylinder(r=3,h=15*12);
+	for (i=[0:11])
+	{
+		color("red") translate([i*6,0,0]) cylinder(r=2,h=15*12);
+	}
 }
 
 module upright(len1,len2)
@@ -173,11 +174,7 @@ translate([teatro_width-12,135,floor2])
 rotate([8,0,180])
 ladder(12*12,24);
 
-translate([0,2*crossbar+12,(21-15)*12])
-helios();
-
-translate([teatro_width,2*crossbar+12,12+15*12])
-rotate([0,180,0])
+translate([16,2*crossbar+12,(21-15)*12])
 helios();
 }
 
