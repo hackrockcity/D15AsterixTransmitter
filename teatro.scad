@@ -174,8 +174,22 @@ translate([teatro_width-12,135,floor2])
 rotate([8,0,180])
 ladder(12*12,24);
 
-translate([16,2*crossbar+12,(21-15)*12])
+translate([16,2*crossbar+6,(21-15)*12])
 helios();
+
+
+// guy lines at the front
+%translate([0,2*crossbar,21*12]) rotate([0,-170,0]) cube([1,1,260]);
+%translate([teatro_width,2*crossbar,21*12]) rotate([0,170,0]) cube([1,1,260]);
+
+// flags
+translate([0,2*crossbar,21*12]) {
+for(i=[0,teatro_width])
+{
+	translate([i,0,0]) cube([1,1,72]);
+	color("pink") translate([i,0,72-24])  cube([36,1,24]);
+}
+}
 }
 
 
